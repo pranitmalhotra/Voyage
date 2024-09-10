@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personalized Travel Itinerary Generator</title>
+</head>
+<body>
+    <h2>Step 1: Travel Destination and Duration</h2>
+    <form id="step1">
+        <label for="destination">Travel Destination:</label>
+        <input type="text" id="destination" name="destination" required><br><br>
+
+        <label for="duration">Trip Duration (in days):</label>
+        <input type="number" id="duration" name="duration" required><br><br>
+
+        <button type="button" onclick="goToStep2()">Next</button>
+    </form>
+
+    <script>
+        function goToStep2() {
+            const destination = document.getElementById("destination").value;
+            const duration = document.getElementById("duration").value;
+            sessionStorage.setItem("destination", destination);
+            sessionStorage.setItem("duration", duration);
+            window.location.href = "step2.html";
+        }
+    </script>
+</body>
+</html>
