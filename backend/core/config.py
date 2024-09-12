@@ -24,7 +24,7 @@ def parse_cors(v: Any) -> list[str] | str:
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file="../../.env", env_ignore_empty=True, extra="ignore"
+        env_file="../.env", env_ignore_empty=True, extra="ignore"
     )
     API_V1_STR: str = "/api/v1"
     DOMAIN: str = "localhost"
@@ -84,9 +84,10 @@ class Settings(BaseSettings):
 
     # TODO: update type to EmailStr when sqlmodel supports it
     EMAIL_TEST_USER: str = "test@example.com"
-    # TODO: update type to EmailStr when sqlmodel supports it
     # FIRST_SUPERUSER: str
     # FIRST_SUPERUSER_PASSWORD: str
+
+    GOOGLE_PLACES_API_KEY: str
 
 
 settings = Settings()  # type: ignore

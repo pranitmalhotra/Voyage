@@ -1,4 +1,4 @@
-from core.db import Base
+from backend.app.core.db import Base
 from sqlalchemy import Column, Integer, String
 
 class FormSubmission(Base):
@@ -22,4 +22,3 @@ class FormSubmission(Base):
     option1 = Column(String)
     option2 = Column(String)
     option3 = Column(String)
-
