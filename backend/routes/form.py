@@ -163,29 +163,6 @@ def sort_list_using_bayesian_average(places: List[Dict]) -> List[Dict]:
 
     return sorted(places, key=lambda x: x['bayesian_average'], reverse=True)
 
-def select_top_places(sorted_restaurants: List[Dict], sorted_attractions: List[Dict], duration: int) -> Dict[str, List[Dict]]:
-    """
-    Selects top-rated places based on the duration.
-    
-    Args:
-        sorted_restaurants: List of sorted restaurants in descending order of ratings.
-        sorted_attractions: List of sorted attractions in descending order of ratings.
-        duration: The number of days to plan the itinerary.
-
-    Returns:
-        A dictionary with top restaurants and attractions for the trip duration.
-    """
-    # top_attractions = sorted_attractions[:2 * duration]
-    # top_restaurants = sorted_restaurants[:3 * duration]
-
-    top_attractions = sorted_attractions
-    top_restaurants = sorted_restaurants
-    
-    return {
-        "top_attractions": top_attractions,
-        "top_restaurants": top_restaurants
-    }
-
 def cluster_places(top_restaurants: List[Dict], top_attractions: List[Dict], duration: int) -> List[Dict[str, List[Dict]]]:
     """
     Cluster top attractions and restaurants into groups for daily itineraries.
@@ -213,6 +190,12 @@ def cluster_places(top_restaurants: List[Dict], top_attractions: List[Dict], dur
     for cluster in clusters:
         attractions = [place for place in cluster if place in top_attractions][:2]
         restaurants = [place for place in cluster if place in top_restaurants][:3]
+
+        if len(attractions) < 2:
+            attractions += [place for place in top_attractions if place not in attractions][:2-len(attractions)]
+        if len(restaurants) < 3:
+            restaurants += [place for place in top_restaurants if place not in restaurants][:3-len(restaurants)]
+
         daily_itineraries.append({
             "attractions": attractions,
             "restaurants": restaurants
