@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Select Top 3</title>
+</head>
+
+<body>
+    <h2>Step 3: Choose Your Top 3 Options</h2>
+    <form id="step3">
+        <label for="option1">Choose Option 1:</label>
+        <input type="text" id="option1" name="option1" required><br><br>
+
+        <label for="option2">Choose Option 2:</label>
+        <input type="text" id="option2" name="option2" required><br><br>
+
+        <label for="option3">Choose Option 3:</label>
+        <input type="text" id="option3" name="option3" required><br><br>
+
+        <button type="button" onclick="submitForm()">Submit</button>
+    </form>
+
+    <script>
+        function submitForm() {
+            const option1 = document.getElementById("option1").value;
+            const option2 = document.getElementById("option2").value;
+            const option3 = document.getElementById("option3").value;
+
+            const destination = sessionStorage.getItem("destination");
+            const duration = sessionStorage.getItem("duration");
+            const budget = sessionStorage.getItem("budget");
+
+            const data = {
+                destination: destination,
+                duration: parseInt(duration),
+                budget: parseInt(budget),
+                options: [option1, option2, option3]
+            };
+
+            fetch('http://localhost:8000/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.status === 422) {
+                        return response.json().then(errData => {
+                            alert("Error 422: " + (errData.message || "Unprocessable Entity"));
+                        });
+                    } else if (!response.ok) {
+                        throw new Error('Something went wrong');
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(result => {
+                    console.log('Success:', result);
+                    alert('Form submitted successfully!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+        }
+    </script>
+</body>
+
+</html>
