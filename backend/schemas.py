@@ -13,4 +13,6 @@ class FormData(BaseModel):
     destination: StrictStr
     duration: StrictInt  
     budget: StrictInt
+    hotel: StrictStr
+    breakfast: StrictStr
     options: list[StrictStr]
