@@ -7,6 +7,3 @@ images:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-
-substitutions:
-  _SERVICE_NAME: 'email-service'
