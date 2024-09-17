@@ -1,9 +1,12 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/email-service:latest', 'email-service']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/$SERVICE_NAME:latest', '$SERVICE_NAME']
 
 images:
-  - 'gcr.io/$PROJECT_ID/email-service:latest'
+  - 'gcr.io/$PROJECT_ID/$SERVICE_NAME:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _SERVICE_NAME: 'email-service'
