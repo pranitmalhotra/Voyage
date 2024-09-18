@@ -1,42 +1,25 @@
-from fastapi import FastAPI, Request, HTTPException
-from pydantic import BaseModel
 from google.cloud import pubsub_v1
-import json
-import logging
-import base64
 
-app = FastAPI()
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-
-# Define a Pydantic model to validate incoming messages
-class PubSubMessage(BaseModel):
-    message: dict
-
-@app.post("/pubsub")
-async def pubsub_endpoint(request: Request):
+def callback(message):
     try:
-        # Parse the incoming request body
-        body = await request.json()
-        pubsub_message = PubSubMessage(message=body.get('message', {}))
-        
-        # Extract message data
-        data = pubsub_message.message.get('data', '')
-        data_decoded = base64.b64decode(data).decode('utf-8')
-        logging.info(f"Received message: {data_decoded}")
-        
-        # Process message
-        process_message(data_decoded)
-        
-        return {"status": "ok"}
+        data = message.data.decode('utf-8')
+        print(f"Received: {data}")
+        message.ack()
     except Exception as e:
-        logging.error(f"Failed to process message: {e}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        print(f"Failed to process message: {e}")
 
-def process_message(data):
+def main():
+    project_id = 'natural-aria-435207-e6'
+    subscription_id = 'my-subscription'
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_path = subscriber.subscription_path(project_id, subscription_id)
+    streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)
+    print(f"Listening for messages on {subscription_path}...\n")
     try:
-        # Implement your message processing logic here
-        print(f"Processing message: {data}")
-    except Exception as e:
-        logging.error(f"Error processing message: {e}")
+        streaming_pull_future.result()
+    except KeyboardInterrupt:
+        streaming_pull_future.cancel()
+        streaming_pull_future.result()
+
+if __name__ == "__main__":
+    main()
