@@ -6,6 +6,7 @@ from google.cloud import pubsub_v1
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sklearn.cluster import KMeans
+from typing import Dict, List
 
 # from core.db import get_db
 from schemas import FormData
@@ -14,6 +15,70 @@ from core.config import settings
 router = APIRouter()
 
 GOOGLE_PLACES_API_URL = "https://places.googleapis.com/v1/places:searchText"
+
+# no of results will be decided by the caller function
+async def fetch_places(preferences: Dict, destination: str, budget: str, no_of_results: int = 10) -> List[Dict]:
+    # Need to add a appropriate docstring
+    # OR duration can be something that can be computed by a function inside of this function
+
+    headers = {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
+        'X-Goog-FieldMask': (
+            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,'
+            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,'
+            'places.nationalPhoneNumber,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,'
+            'places.editorialSummary,places.dineIn,places.goodForGroups,places.liveMusic,places.reservable,'
+            'places.servesBreakfast,places.servesCocktails,places.servesDessert,places.servesDinner,'
+            'places.servesLunch,places.servesWine,nextPageToken'
+        )
+    }
+
+    results = []
+    next_page_token = None
+
+    match budget:
+        case "PRICE_LEVEL_VERY_EXPENSIVE":
+            price_level = "Very Expensively"
+        case "PRICE_LEVEL_EXPENSIVE":
+            price_level = "Expensively"
+        case "PRICE_LEVEL_MODERATE":
+            price_level = "Moderately"
+        case "PRICE_LEVEL_INEXPENSIVE":
+            price_level = "Cheaply"
+
+    while len(results) < no_of_results:
+        payload = {
+            "textQuery": f"{price_level} priced restaurants in {destination}",
+            'pageToken': next_page_token if next_page_token else None
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
+            data = response.json()
+            print(data)
+            
+            if 'error_message' in data:
+                raise ValueError(f"Error from Google Places API: {data['error_message']}")
+            
+            places = data.get('places', [])
+            next_page_token = data.get('nextPageToken', None)
+            
+            for place in places:
+                # if all(place.get(key) == value for key, value in preferences.items() if key in place) and place.get("priceLevel") == budget:
+                if place.get("priceLevel") == budget:
+                    results.append(place)
+                
+                if len(results) >= no_of_results:
+                    break
+            
+            if not next_page_token:
+                break
+
+    return results[:no_of_results]
+
+
+# function that decides the no of places to fetch and the logic for that.
 
 async def get_restaurants_by_price_level(location: str, budget: str):
     """
@@ -35,7 +100,7 @@ async def get_restaurants_by_price_level(location: str, budget: str):
             'places.nationalPhoneNumber,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,'
             'places.editorialSummary,places.dineIn,places.goodForGroups,places.liveMusic,places.reservable,'
             'places.servesBreakfast,places.servesCocktails,places.servesDessert,places.servesDinner,'
-            'places.servesLunch,places.servesWine'
+            'places.servesLunch,places.servesWine,nextPageToken'
         )
     }
 
@@ -254,7 +319,7 @@ def cluster_places(top_restaurants: List[Dict], top_attractions: List[Dict], dur
             "restaurants": restaurants
         })
     
-    publish_to_pubsub(daily_itineraries)
+    # publish_to_pubsub(daily_itineraries)
 
     return daily_itineraries
 
@@ -273,14 +338,18 @@ async def submit_form(data: FormData):
     """
 
     budget = data.budget
-    restaurants_list = await get_restaurants_by_price_level(data.destination, budget)
-    attractions_list = await get_attractions_details(data.destination)
+    destination = data.destination
 
-    sorted_restaurants_list = sort_list_using_bayesian_average(restaurants_list)
-    sorted_attractions_list = sort_list_using_bayesian_average(attractions_list)
-    duration = data.duration
+    # restaurants_list = await get_restaurants_by_price_level(data.destination, budget)
+    # attractions_list = await get_attractions_details(data.destination)
 
-    daily_itineraries = cluster_places(sorted_restaurants_list, sorted_attractions_list, duration)
+    # sorted_restaurants_list = sort_list_using_bayesian_average(restaurants_list)
+    # sorted_attractions_list = sort_list_using_bayesian_average(attractions_list)
+    # duration = data.duration
+
+    # daily_itineraries = cluster_places(sorted_restaurants_list, sorted_attractions_list, duration)
+
+    daily_itineraries = await fetch_places({}, destination, budget, 10)
 
     return {
         "daily_itineraries": daily_itineraries
