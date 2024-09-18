@@ -6,8 +6,13 @@
 <body>
     <h2>Step 2: Budget & Hotel</h2>
     <form id="step2">
-        <label for="budget">Your Budget:</label>
-        <input type="number" id="budget" name="budget" required><br><br>
+        <label for="budget">Choice of Restaurant:</label>
+        <select id="budget" name="budget" required>
+            <option value="PRICE_LEVEL_VERY_EXPENSIVE">Very Expensive</option>
+            <option value="PRICE_LEVEL_EXPENSIVE">Expensive</option>
+            <option value="PRICE_LEVEL_MODERATE">Moderate</option>
+            <option value="PRICE_LEVEL_INEXPENSIVE">Inexpensive</option>
+        </select><br><br>
 
         <label for="hotel">Your Hotel:</label>
         <input type="text" id="hotel" name="hotel" required><br><br>
@@ -25,7 +30,9 @@
         function goToStep3() {
             const budget = document.getElementById("budget").value;
             sessionStorage.setItem("budget", budget);
-            window.location.href = "step3.html";
+            sessionStorage.setItem("hotel", hotel);
+            sessionStorage.setItem("breakfast", breakfast);
+            window.location.href = "preference.html";
         }
     </script>
 </body>
