@@ -1,25 +1,36 @@
+from fastapi import FastAPI, Request, HTTPException
+from pydantic import BaseModel
 from google.cloud import pubsub_v1
+import json
+import logging
+import base64
 
-def callback(message):
+app = FastAPI()
+
+logging.basicConfig(level=logging.INFO)
+
+class PubSubMessage(BaseModel):
+    message: dict
+
+@app.post("/pubsub")
+async def pubsub_endpoint(request: Request):
     try:
-        data = message.data.decode('utf-8')
-        print(f"Received: {data}")
-        message.ack()
+        body = await request.json()
+        pubsub_message = PubSubMessage(message=body.get('message', {}))
+        
+        data = pubsub_message.message.get('data', '')
+        data_decoded = base64.b64decode(data).decode('utf-8')
+        logging.info(f"Received message: {data_decoded}")
+        
+        process_message(data_decoded)
+        
+        return {"status": "ok"}
     except Exception as e:
-        print(f"Failed to process message: {e}")
+        logging.error(f"Failed to process message: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-def main():
-    project_id = 'natural-aria-435207-e6'
-    subscription_id = 'my-subscription'
-    subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(project_id, subscription_id)
-    streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)
-    print(f"Listening for messages on {subscription_path}...\n")
+def process_message(data):
     try:
-        streaming_pull_future.result()
-    except KeyboardInterrupt:
-        streaming_pull_future.cancel()
-        streaming_pull_future.result()
-
-if __name__ == "__main__":
-    main()
+        print(f"Processing message: {data}")
+    except Exception as e:
+        logging.error(f"Error processing message: {e}")
