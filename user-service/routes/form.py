@@ -16,8 +16,6 @@ router = APIRouter()
 
 GOOGLE_PLACES_API_URL = "https://places.googleapis.com/v1/places:searchText"
 
-# no of results will be decided by the caller function
-
 async def fetch_restaurants(preferences: Dict, destination: str, budget: str, no_of_results: int = 10) -> List[Dict]:
     """
     Fetch restaurants from Google Places API based on given preferences, destination, and budget.
@@ -89,85 +87,47 @@ async def fetch_restaurants(preferences: Dict, destination: str, budget: str, no
 
     return results[:no_of_results]
 
-# function that decides the no of places to fetch and the logic for that.
-
-async def get_restaurants_by_price_level(location: str, budget: str):
-    """
-    Fetch place details from Google Places API based on the query string and budget.
-
-    Args:
-        query: The search term to query places.
-
-    Returns:
-        The response from the Google Places API.
-    """
-
+async def fetch_attractions(destination: str, no_of_results: int = 10) -> List[Dict]:
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
         'X-Goog-FieldMask': (
             'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,'
             'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,'
-            'places.nationalPhoneNumber,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,'
-            'places.editorialSummary,places.dineIn,places.goodForGroups,places.liveMusic,places.reservable,'
-            'places.servesBreakfast,places.servesCocktails,places.servesDessert,places.servesDinner,'
-            'places.servesLunch,places.servesWine,nextPageToken'
+            'places.nationalPhoneNumber,places.rating,places.userRatingCount,places.websiteUri,'
+            'places.editorialSummary,places.goodForGroups'
         )
     }
 
-    match budget:
-        case "PRICE_LEVEL_VERY_EXPENSIVE":
-            price_level = "Very Expensively"
-        case "PRICE_LEVEL_EXPENSIVE":
-            price_level = "Expensively"
-        case "PRICE_LEVEL_MODERATE":
-            price_level = "Moderately"
-        case "PRICE_LEVEL_INEXPENSIVE":
-            price_level = "Cheaply"
+    results = []
+    next_page_token = None
 
-    payload = {
-        "textQuery": f"{price_level} priced restaurants in {location}"
-    }
+    while len(results) < no_of_results:
+        payload = {
+            "textQuery": f"Top Attractions in {destination}",
+            'pageToken': next_page_token if next_page_token else None
+        }
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
-        data = response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
+            data = response.json()
+            
+            if 'error_message' in data:
+                raise ValueError(f"Error from Google Places API: {data['error_message']}")
+            
+            places = data.get('places', [])
+            next_page_token = data.get('nextPageToken', None)
+            
+            for place in places:
+                results.append(place)
+                
+                if len(results) >= no_of_results:
+                    break
+            
+            if not next_page_token:
+                break
 
-        restaurants_list = []
-        if "places" in data:
-            for place in data['places']:
-                restaurant_details = {
-                    'display_name': place.get('displayName', {}).get('text'),
-                    'formatted_address': place.get('formattedAddress'),
-                    'google_maps_uri': place.get('googleMapsUri'),
-                    'location': {
-                        'latitude': place.get('location', {}).get('latitude'),
-                        'longitude': place.get('location', {}).get('longitude')
-                    },
-                    'primary_type': place.get('primaryType'),
-                    'primary_type_display_name': place.get('primaryTypeDisplayName', {}).get('text'),
-                    'current_opening_hours': place.get('currentOpeningHours', {}).get('openNow'),
-                    'international_phone_number': place.get('internationalPhoneNumber'),
-                    'national_phone_number': place.get('nationalPhoneNumber'),
-                    'price_level': place.get('priceLevel'),
-                    'rating': place.get('rating'),
-                    'user_rating_count': place.get('userRatingCount'),
-                    'website_uri': place.get('websiteUri'),
-                    'editorial_summary': place.get('editorialSummary', {}).get('text'),
-                    'dine_in': place.get('dineIn', False),
-                    'good_for_groups': place.get('goodForGroups', False),
-                    'live_music': place.get('liveMusic', False),
-                    'reservable': place.get('reservable', False),
-                    'serves_breakfast': place.get('servesBreakfast', False),
-                    'serves_cocktails': place.get('servesCocktails', False),
-                    'serves_dessert': place.get('servesDessert', False),
-                    'serves_dinner': place.get('servesDinner', False),
-                    'serves_lunch': place.get('servesLunch', False),
-                    'serves_wine': place.get('servesWine', False)
-                }
-                restaurants_list.append(restaurant_details)
-
-    return restaurants_list
+    return results[:no_of_results]
     
 async def get_attractions_details(location: str):
     """
@@ -186,7 +146,7 @@ async def get_attractions_details(location: str):
         'X-Goog-FieldMask': (
             'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,'
             'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,'
-            'places.nationalPhoneNumber,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,'
+            'places.nationalPhoneNumber,places.rating,places.userRatingCount,places.websiteUri,'
             'places.editorialSummary,places.goodForGroups'
         )
     }
@@ -356,7 +316,7 @@ async def submit_form(data: FormData):
     # has to two values for restaurants and attractions
 
     restaurants_list = await fetch_restaurants(preferences, destination, budget, 10)
-    # attractions_list = await fetch_attractions()
+    attractions_list = await fetch_attractions(destination, 10)
 
     # restaurants_list = await get_restaurants_by_price_level(data.destination, budget)
     # attractions_list = await get_attractions_details(data.destination)
