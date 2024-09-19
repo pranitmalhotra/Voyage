@@ -11,7 +11,8 @@ class FormData(BaseModel):
         options: List of three options, each must be a strict string.
     """
     destination: StrictStr
-    duration: StrictInt  
+    duration: StrictInt
+    startDate: StrictStr 
     budget: StrictStr
     hotel: StrictStr
     breakfast: StrictStr
