@@ -129,7 +129,7 @@ async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
 
     return results[:(duration * 3)]
 
-async def fetch_breakfast_restaurants(destination: str, budget: int, duration: int) -> List[Dict]:
+async def fetch_breakfast_restaurants(non_breakfast_restaurants_list:str, destination: str, budget: int, duration: int) -> List[Dict]:
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
@@ -177,7 +177,7 @@ async def fetch_breakfast_restaurants(destination: str, budget: int, duration: i
             for place in places:
                 if (
                     place.get("priceLevel") == budget and 
-                    all(pref in place and place.get(pref) == val for pref, val in preferences.items())
+                    all(pref in place and place.get(pref) == val for pref, val in preferences.items()) and place not in non_breakfast_restaurants_list
                 ):
                     results.append(place)
                 
@@ -322,7 +322,7 @@ async def submit_form(data: FormData):
     attractions_list = await fetch_attractions(destination, duration)
 
     if (data.breakfast == 'yes'):
-        breakfast_restaurants_list = await fetch_breakfast_restaurants(destination, budget, duration)
+        breakfast_restaurants_list = await fetch_breakfast_restaurants(non_breakfast_restaurants_list, destination, budget, duration)
         restaurants_list = breakfast_restaurants_list + non_breakfast_restaurants_list
     else:
         restaurants_list = non_breakfast_restaurants_list
