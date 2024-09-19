@@ -15,4 +15,5 @@ class FormData(BaseModel):
     budget: StrictStr
     hotel: StrictStr
     breakfast: StrictStr
-    options: list[StrictStr]
+    preferences: dict[StrictStr, bool]
+    email: StrictStr
