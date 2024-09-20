@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Budget & Hotel</title>
+    <title>Voyage</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h2>Step 2: Budget & Hotel</h2>
-    <form id="step2">
+    <div class="navbar">
+        <h1>Voyage</h1>
+    </div>
+    <form id="screen2">
         <label for="budget">Choice of Restaurant:</label>
         <select id="budget" name="budget" required>
+            <option value="" disabled selected>Select a price level</option>
             <option value="PRICE_LEVEL_VERY_EXPENSIVE">Very Expensive</option>
             <option value="PRICE_LEVEL_EXPENSIVE">Expensive</option>
             <option value="PRICE_LEVEL_MODERATE">Moderate</option>
@@ -19,19 +23,34 @@
 
         <label for="breakfast">Breakfast Included:</label>
         <select id="breakfast" name="breakfast" required>
+            <option value="" disabled selected>Select an option</option>
             <option value="yes">Yes</option>
             <option value="no">No</option>
         </select><br><br>
-
-        <button type="button" onclick="goToStep3()">Next</button>
+        <button class="back-button" type="button" onclick="history.back()">Prev</button>
+        <button type="button" onclick="goToScreen3()">Next</button>
     </form>
 
     <script>
-        function goToStep3() {
+        function goToScreen3() {
             const budget = document.getElementById("budget").value;
+            const hotel = document.getElementById("hotel").value;
+            const breakfast = document.getElementById("breakfast").value;
+
+            if (!budget || !hotel || !breakfast) {
+                alert("All fields are required.");
+                return;
+            }
+
+            if (hotel.trim() === "") {
+                alert("Hotel name cannot be empty.");
+                return;
+            }
+
             sessionStorage.setItem("budget", budget);
             sessionStorage.setItem("hotel", hotel);
             sessionStorage.setItem("breakfast", breakfast);
+
             window.location.href = "preference.html";
         }
     </script>

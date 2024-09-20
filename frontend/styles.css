@@ -1,0 +1,228 @@
+/* Global Styles */
+@import url('https://fonts.cdnfonts.com/css/avenir');
+@import url('https://fonts.cdnfonts.com/css/gilroy-bold');
+body {
+    font-family: 'Avenir', sans-serif;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navbar Styles */
+.navbar {
+    font-family: 'Gilroy-Heavy', sans-serif;
+    background-color: #fff; /* Atlan blue */
+    color: #2F52DC;
+    padding: 15px 0;
+    top: 0;
+    width: 100%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #0056b3; /* Darker blue for separation */
+}
+
+.navbar h1 {
+    margin: 0;
+    color: #2F52DC;
+    margin-left: 35px;
+}
+
+/* Form Styles */
+form {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    border: 2px solid #1D22BD;
+    box-shadow: 15px 15px #1D22BD;
+    /* Adjust for navbar height */
+    max-width: 600px; /* Fixed width for modern look */
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2%;
+}
+.prefForm p{
+    display: block;
+    font-weight: 600;
+    font-size: large;
+    margin-bottom: 13px;
+    color: #374151;
+}
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #374151; /* Modern blue */
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+form select {
+    width: 95%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+}
+
+button {
+    background-color: #1D22BD;  /* Fresh green */
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+   
+}
+
+.back-button{
+    background-color: #ffffff;  /* Fresh green */
+    color: #1D22BD;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.back-button:hover{
+    background-color: #1D22BD;  /* Fresh green */
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: none;
+}
+button:hover {
+    background-color: white; 
+    color:#374151;
+    border: 2px solid #1D22BD;
+    box-shadow: 5px 5px #1D22BD;
+     /* Subtle lift effect */
+}
+
+/* Icon */
+.icon {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: url('icon.png') no-repeat center center;
+    background-size: contain;
+    vertical-align: middle;
+}
+
+/* Heading Styles */
+h1 {
+    color: #ffffff; /* Modern blue */
+    font-size: 25px;
+    margin-bottom: 20px;
+    margin-left: 15px;
+}
+
+/* Fun and Modern Styles */
+
+/* form {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    max-width: 600px; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button {
+    background-color: #1D22BD; 
+}
+
+button:hover {
+    background-color: white; 
+    color:#374151;
+    border: 2px solid #1D22BD;
+    transform: translateY(-2px); 
+} */
+
+/* Card Styles */
+.itinerary {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 150px;
+    border: 2px solid #1D22BD;
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
+}
+.container h1{
+    color: #333;
+    font-family: 'Gilroy-Heavy', sans-serif;
+    font-size:37px;
+    text-align: left;
+    margin-left: 14%;
+    margin-bottom: 5%;
+}
+.itinerary:hover {
+    transform: translateY(-5px); /* Subtle lift effect */
+    box-shadow: 15px 15px #1D22BD; /* Enhanced shadow on hover */
+}
+
+.itinerary h2 {
+    color: #2F52DC; /* Modern blue */
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.itinerary h3 {
+    color: #2F52DC; /* Modern blue */
+    font-size: 22px;
+    margin-top: 20px;
+}
+.attraction{
+    border: 2px solid #494ed0;
+}
+.attraction, .restaurant {
+    background-color: #f9f9f9;
+    border: 2px solid #494ed0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.attraction h4, .restaurant h4 {
+    color: #2F52DC; /* Darker blue */
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.attraction p, .restaurant p {
+    font-size: 16px;
+    color: #333;
+}
+
+.attraction a, .restaurant a {
+    color: #0009b9; /* Stylish teal */
+}
+
+.attraction a:hover, .restaurant a:hover {
+    text-decoration: underline;
+}

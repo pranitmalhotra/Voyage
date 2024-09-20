@@ -3,93 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
     <title>Daily Itineraries</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            margin: 20px;
-        }
-        .itinerary, .attraction, .restaurant {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        h3 {
-            margin: 0 0 10px;
-        }
-    </style>
 </head>
 <body>
+    <div class="navbar">
+        <h1>Voyage</h1>
+    </div>
     <div class="container">
         <h1>Daily Itineraries</h1>
-        <div id="itinerary-container"></div>
+        <div id="itinerary-container" >
+
+        </div>
     </div>
 
-    <script>
-        const storedData = sessionStorage.getItem('daily_itineraries');
-
-        if (storedData) {
-            const itineraries = JSON.parse(storedData);
-            const itineraryContainer = document.getElementById('itinerary-container');
-
-            if (Array.isArray(itineraries)) {
-                itineraries.forEach((day, dayIndex) => {
-                    const dayElement = document.createElement('div');
-                    dayElement.classList.add('itinerary');
-                    dayElement.innerHTML = `<h2>Day ${dayIndex + 1}</h2>`;
-
-                    if (Array.isArray(day.attractions) && day.attractions.length > 0) {
-                        const attractionsSection = document.createElement('div');
-                        attractionsSection.innerHTML = `<h3>Attractions:</h3>`;
-                        day.attractions.forEach(attraction => {
-                            const attractionElement = document.createElement('div');
-                            attractionElement.classList.add('attraction');
-                            attractionElement.innerHTML = `
-                                <h4>${attraction.display_name}</h4>
-                                <p><strong>Address:</strong> ${attraction.formatted_address}</p>
-                                <p><strong>Google Maps:</strong> <a href="${attraction.google_maps_uri}" target="_blank">Link</a></p>
-                                <p><strong>Phone:</strong> ${attraction.international_phone_number || 'N/A'}</p>
-                                <p><strong>Rating:</strong> ${attraction.rating} (${attraction.user_rating_count} reviews)</p>
-                                <p><strong>Website:</strong> <a href="${attraction.website_uri}" target="_blank">${attraction.website_uri || 'N/A'}</a></p>
-                                <p><strong>Summary:</strong> ${attraction.editorial_summary || 'No summary available'}</p>
-                            `;
-                            attractionsSection.appendChild(attractionElement);
-                        });
-                        dayElement.appendChild(attractionsSection);
-                    }
-
-                    if (Array.isArray(day.restaurants) && day.restaurants.length > 0) {
-                        const restaurantsSection = document.createElement('div');
-                        restaurantsSection.innerHTML = `<h3>Restaurants:</h3>`;
-                        day.restaurants.forEach(restaurant => {
-                            const restaurantElement = document.createElement('div');
-                            restaurantElement.classList.add('restaurant');
-                            restaurantElement.innerHTML = `
-                                <h4>${restaurant.display_name}</h4>
-                                <p><strong>Address:</strong> ${restaurant.formatted_address}</p>
-                                <p><strong>Google Maps:</strong> <a href="${restaurant.google_maps_uri}" target="_blank">Link</a></p>
-                                <p><strong>Phone:</strong> ${restaurant.international_phone_number || 'N/A'}</p>
-                                <p><strong>Rating:</strong> ${restaurant.rating} (${restaurant.user_rating_count} reviews)</p>
-                                <p><strong>Website:</strong> <a href="${restaurant.website_uri}" target="_blank">${restaurant.website_uri || 'N/A'}</a></p>
-                                <p><strong>Summary:</strong> ${restaurant.editorial_summary || 'No summary available'}</p>
-                            `;
-                            restaurantsSection.appendChild(restaurantElement);
-                        });
-                        dayElement.appendChild(restaurantsSection);
-                    }
-
-                    itineraryContainer.appendChild(dayElement);
-                });
-            } else {
-                document.getElementById('itinerary-container').innerHTML = '<p>No valid itinerary data found.</p>';
-            }
-        } else {
-            document.getElementById('itinerary-container').innerHTML = '<p>No itinerary data found in session storage.</p>';
-        }
-    </script>
+    <script src="itinerary.js"></script>
 </body>
 </html>

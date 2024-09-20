@@ -5,7 +5,6 @@ const options = {
     "Serves Wine": "servesWine",
     "Allows Dogs": "allowsDogs",
     "Good For Children": "goodForChildren",
-    "Good for Watching Sports": "goodForWatchingSports",
     "Outdoor Seating": "outdoorSeating",
     "Serves Beer": "servesBeer",
     "Serves Vegetarian Food": "servesVegetarianFood"
@@ -29,48 +28,57 @@ populateDropdown(option1);
 populateDropdown(option2);
 populateDropdown(option3);
 
-function updateDropdowns() {
-    const selectedOptions = [
-        option1.value, 
-        option2.value, 
-        option3.value
-    ];
+// function updateDropdowns() {
+//     const selectedOptions = [
+//         option1,
+//         option2,
+//         option3,
+//     ];
+    // if((option1==option2)||(option1==option3)||(option2==option3)){
+    //     alert("Please select different preference");
+    //     return ;
+    // }
+// }
 
-    [option1, option2, option3].forEach(dropdown => {
-        const currentValue = dropdown.value;
-        dropdown.innerHTML = '<option value="" disabled>Select an option</option>';
-        
-        for (const displayText in options) {
-            if (!selectedOptions.includes(options[displayText]) || options[displayText] === currentValue) {
-                const opt = document.createElement('option');
-                opt.value = options[displayText];
-                opt.text = displayText;
-                if (options[displayText] === currentValue) opt.selected = true;
-                dropdown.appendChild(opt);
-            }
-        }
-    });
-}
-
-[option1, option2, option3].forEach(dropdown => {
-    dropdown.addEventListener('change', updateDropdowns);
-});
+// [option1, option2, option3].forEach(dropdown => {
+//     dropdown.addEventListener('change', updateDropdowns);
+// });
 
 function submitForm() {
     const option1Value = option1.value;
     const option2Value = option2.value;
     const option3Value = option3.value;
-    const emailValue = emailInput.value || 'none';
+    const emailValue = emailInput.value;
+
+    if (!option1Value || !option2Value || !option3Value) {
+        alert("Please select an option from all dropdowns.");
+        return;
+    }
+    if((option1Value==option2Value)||(option1Value==option3Value)||(option2Value==option3Value)){
+        alert("Please select unique preferences");
+        return ;
+    }
+    if (!validateEmail(emailValue)) {
+        alert("Please enter a valid email address.");
+        return;
+    }
 
     const destination = sessionStorage.getItem("destination");
     const duration = sessionStorage.getItem("duration");
+    const startDate = sessionStorage.getItem("start_date");
     const budget = sessionStorage.getItem("budget");
     const hotel = sessionStorage.getItem("hotel");
     const breakfast = sessionStorage.getItem("breakfast");
 
+    if (!destination || !duration || !startDate || !budget || !hotel || !breakfast) {
+        alert("Some required data is missing.");
+        return;
+    }
+
     const data = {
         destination: destination,
-        duration: parseInt(duration),
+        duration: parseInt(duration, 10),
+        startDate: startDate,
         budget: budget,
         hotel: hotel,
         breakfast: breakfast,
@@ -82,7 +90,7 @@ function submitForm() {
         }
     };
 
-    fetch('http://localhost:8000/submit', {
+    fetch('https://voyage-532295559263.asia-south1.run.app/submit', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -111,4 +119,9 @@ function submitForm() {
         console.error('Error:', error);
         alert('An error occurred. Please try again.');
     });
+}
+
+function validateEmail(email) {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailPattern.test(email);
 }

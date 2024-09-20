@@ -2,30 +2,34 @@
 <html>
 
 <head>
-    <title>Select Top 3</title>
+    <title>Voyage</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <h2>Step 3: Choose Your Top 3 Options</h2>
-    <form id="step3">
-        <label for="option1">Choose Option 1:</label>
+    <div class="navbar">
+        <h1>Voyage</h1>
+    </div>
+    <form id="step3" class="prefForm">
+        <p>Tell us what you would prefer: </p>
+        <label for="option1">Preference 1</label>
         <select id="option1" name="option1" required>
             <option value="" disabled selected>Select an option</option>
         </select><br><br>
 
-        <label for="option2">Choose Option 2:</label>
+        <label for="option2">Preference 2</label>
         <select id="option2" name="option2" required>
             <option value="" disabled selected>Select an option</option>
         </select><br><br>
 
-        <label for="option3">Choose Option 3:</label>
+        <label for="option3">Preference 3</label>
         <select id="option3" name="option3" required>
             <option value="" disabled selected>Select an option</option>
         </select><br><br>
 
         <label for="email">Sign up for daily updates of the Itinerary:</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" /><br><br>
-
+        <input type="email" id="email" name="email" placeholder="Enter your email" required /><br><br>
+        <button class="back-button" type="button" onclick="history.back()">Prev</button>
         <button type="button" onclick="submitForm()">Submit</button>
     </form>
 
