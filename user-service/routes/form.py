@@ -11,7 +11,7 @@ router = APIRouter()
 
 GOOGLE_PLACES_API_URL = "https://places.googleapis.com/v1/places:searchText"
 
-async def fetch_non_breakfast_restaurants(preferences: Dict, destination: str, budget: str) -> Dict:
+async def fetch_non_breakfast_restaurants(preferences: Dict, attraction: str, budget: str, destination: str) -> Dict:
     """
     Fetch the first restaurant from Google Places API based on given preferences, destination, and budget.
     
@@ -52,7 +52,7 @@ async def fetch_non_breakfast_restaurants(preferences: Dict, destination: str, b
 
     while True:
         payload = {
-            "textQuery": f"Show the best {price_level_text} priced restaurants near {destination}",
+            "textQuery": f"Show the best {price_level_text} priced restaurants near {attraction}, {destination}",
             'pageToken': next_page_token if next_page_token else None
         }
 
@@ -125,7 +125,7 @@ async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
 
     return results[:(duration * 3)]
 
-async def fetch_breakfast_restaurants(destination: str, budget: str) -> Dict:
+async def fetch_breakfast_restaurants(attraction: str, budget: str, destination: str) -> Dict:
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
@@ -155,7 +155,7 @@ async def fetch_breakfast_restaurants(destination: str, budget: str) -> Dict:
 
     while True:
         payload = {
-            "textQuery": f"Show {price_level_text} priced breakfast spots near {destination}",
+            "textQuery": f"Show {price_level_text} priced breakfast spots near {attraction}, {destination}",
             'pageToken': next_page_token if next_page_token else None
         }
 
@@ -185,7 +185,7 @@ async def fetch_breakfast_restaurants(destination: str, budget: str) -> Dict:
 
     return first_restaurant
 
-async def cluster_attractions(attractions_list: List[Dict], breakfast: str, budget: str, preferences: Dict) -> List[Dict]:
+async def cluster_attractions(attractions_list: List[Dict], breakfast: str, budget: str, preferences: Dict, destination: str) -> List[Dict]:
     """
     Cluster attractions based on proximity and apply breakfast conditions.
 
@@ -224,14 +224,14 @@ async def cluster_attractions(attractions_list: List[Dict], breakfast: str, budg
         restaurants = []
         if breakfast == 'yes':
             for attraction in cluster[1:]:
-                result_B = await fetch_non_breakfast_restaurants(preferences, attraction["displayName"]["text"], budget)
+                result_B = await fetch_non_breakfast_restaurants(preferences, attraction["displayName"]["text"], budget, destination)
                 restaurants.append(result_B if result_B else None)
         else:
-            result_A = await fetch_breakfast_restaurants(cluster[0]["displayName"]["text"], budget)
+            result_A = await fetch_breakfast_restaurants(cluster[0]["displayName"]["text"], budget, destination)
             restaurants.append(result_A if result_A else None)
             
             for attraction in cluster[1:]:
-                result_B = await fetch_non_breakfast_restaurants(preferences, attraction["displayName"]["text"], budget)
+                result_B = await fetch_non_breakfast_restaurants(preferences, attraction["displayName"]["text"], budget, destination)
                 restaurants.append(result_B if result_B else None)
 
         itinerary_item = {'attractions': cluster, "restaurants": restaurants}
@@ -274,7 +274,7 @@ async def submit_form(data: FormData):
 
     # daily_itineraries = cluster_places(restaurants_list, attractions_list, duration)
 
-    daily_itineraries = await cluster_attractions(attractions_list, breakfast, budget, preferences)
+    daily_itineraries = await cluster_attractions(attractions_list, breakfast, budget, preferences, destination)
 
     return {
         "daily_itineraries": daily_itineraries
