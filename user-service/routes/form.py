@@ -279,6 +279,11 @@ async def submit_form(data: FormData):
     attractions_list = await fetch_attractions(destination, duration)
     daily_itineraries = await cluster_attractions(attractions_list, breakfast, budget, preferences, destination)
 
+    fetch_complete = True
+    if len(daily_itineraries) < duration:
+        fetch_complete = False
+
     return {
+        "fetch_complete": fetch_complete,
         "daily_itineraries": daily_itineraries
     }
