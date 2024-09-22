@@ -143,7 +143,7 @@ h1 {
     margin-bottom: 20px;
 }
 .no-itinerary{
-    display: block;
+    display: none;
     font-weight: 600;
     font-size: large;
     margin-left: 14%;

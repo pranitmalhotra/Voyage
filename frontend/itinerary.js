@@ -4,8 +4,8 @@ console.log(fetch_succ);
 if(fetch_succ){
     const ifFetchSuccessfull = JSON.parse(fetch_succ);
     console.log(ifFetchSuccessfull);
-    if(ifFetchSuccessfull=='false'){
-        document.getElementById("no-itr").style.display="none";
+    if(ifFetchSuccessfull==false){
+        document.getElementById("no-itr").style.display="block";
     }
 }
 if (storedData) {
