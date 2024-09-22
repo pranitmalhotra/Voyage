@@ -1,5 +1,13 @@
 const storedData = sessionStorage.getItem('daily_itineraries');
-
+const fetch_succ = sessionStorage.getItem('fetch_successfull');
+console.log(fetch_succ);
+if(fetch_succ){
+    const ifFetchSuccessfull = JSON.parse(fetch_succ);
+    console.log(ifFetchSuccessfull);
+    if(ifFetchSuccessfull=='false'){
+        document.getElementById("no-itr").style.display="none";
+    }
+}
 if (storedData) {
     const itineraries = JSON.parse(storedData);
     const itineraryContainer = document.getElementById('itinerary-container');
@@ -11,9 +19,9 @@ if (storedData) {
                 const dayElement = document.createElement('div');
                 dayElement.classList.add('itinerary');
                 dayElement.innerHTML = `<h2>Day ${dayIndex + 1}</h2>`;
-                console.log("attractions",day.attractions.length);
-                console.log("restaurants",day.restaurants.length);
-                console.log("restaurants",day.restaurants);
+                // console.log("attractions",day.attractions.length);
+                // console.log("restaurants",day.restaurants.length);
+                // console.log("restaurants",day.restaurants);
                 if (Array.isArray(day.attractions) && day.attractions.length > 0) {
                     const attractionsSection = document.createElement('div');
                     attractionsSection.innerHTML = `<h3>Attractions 1:</h3>`;
@@ -176,8 +184,8 @@ if (storedData) {
         
         if (Array.isArray(itineraries)) {
             itineraries.forEach((day, dayIndex) => {
-                console.log(day.restaurants.length);
-                console.log(day.attractions.length);
+                // console.log(day.restaurants.length);
+                // console.log(day.attractions.length);
                 const dayElement = document.createElement('div');
                 dayElement.classList.add('itinerary');
                 dayElement.innerHTML = `<h2>Day ${dayIndex + 1}</h2>`;

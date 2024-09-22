@@ -113,6 +113,7 @@ function submitForm() {
         console.log('Success:', result);
         alert('Form submitted successfully!');
         sessionStorage.setItem('daily_itineraries', JSON.stringify(result.daily_itineraries));
+        sessionStorage.setItem('fetch_successfull', JSON.stringify(result.fetch_complete));
         window.location.href = 'itinerary.html';
     })
     .catch(error => {
