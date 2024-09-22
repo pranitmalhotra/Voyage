@@ -1,14 +1,11 @@
-import logging
 import httpx
+
 from fastapi import APIRouter
 from typing import Dict, List
 from geopy.distance import geodesic
+
 from schemas import FormData
 from core.config import settings
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -17,18 +14,26 @@ GOOGLE_PLACES_API_URL = "https://places.googleapis.com/v1/places:searchText"
 async def fetch_non_breakfast_restaurants(preferences: Dict, attraction: str, budget: str, destination: str) -> Dict:
     """
     Fetch the first restaurant from Google Places API based on given preferences, destination, and budget.
-    """
-    logger.info(f"Fetching non-breakfast restaurants near {attraction}, {destination} with budget: {budget}")
     
+    Args:
+        preferences (Dict): A dictionary containing preferences for filtering restaurants.
+        destination (str): The location where the search is performed.
+        budget (str): The price level of the restaurant (e.g., PRICE_LEVEL_VERY_EXPENSIVE, PRICE_LEVEL_EXPENSIVE, etc.).
+        
+    Returns:
+        Dict: The first restaurant details that match the preferences and budget, or the first fetched restaurant if none qualify.
+    """
+
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
         'X-Goog-FieldMask': (
-            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,' 
-            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,places.nationalPhoneNumber,' 
-            'places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.editorialSummary,places.dineIn,' 
-            'places.goodForGroups,places.liveMusic,places.reservable,places.servesBreakfast,places.servesCocktails,places.servesDessert,' 
-            'places.servesDinner,places.servesLunch,places.servesWine,nextPageToken'
+            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,'
+            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,'
+            'places.nationalPhoneNumber,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,'
+            'places.editorialSummary,places.dineIn,places.goodForGroups,places.liveMusic,places.reservable,'
+            'places.servesBreakfast,places.servesCocktails,places.servesDessert,places.servesDinner,'
+            'places.servesLunch,places.servesWine,nextPageToken'
         )
     }
 
@@ -51,52 +56,41 @@ async def fetch_non_breakfast_restaurants(preferences: Dict, attraction: str, bu
             'pageToken': next_page_token if next_page_token else None
         }
 
-        try:
-            async with httpx.AsyncClient() as client:
-                logger.info("Sending request to Google Places API...")
-                response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
-                data = response.json()
-                logger.info("Received response from Google Places API.")
-                logger.info(data)
-                
-                if 'error_message' in data:
-                    logger.error(f"Error from Google Places API: {data['error_message']}")
-                    raise ValueError(f"Error from Google Places API: {data['error_message']}")
-                
-                places = data.get('places', [])
-                next_page_token = data.get('nextPageToken', None)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
+            data = response.json()
+            print(data)
 
-                if places:
-                    first_restaurant = places[0]
-                
-                for place in places:
-                    if (
-                        place.get("priceLevel") == budget and
-                        all(pref in place and place.get(pref) == val for pref, val in preferences.items())
-                    ):
-                        logger.info(f"Found matching restaurant: {place['displayName']}")
-                        return place
+            if 'error_message' in data:
+                raise ValueError(f"Error from Google Places API: {data['error_message']}")
+            
+            places = data.get('places', [])
+            next_page_token = data.get('nextPageToken', None)
 
-                if not next_page_token:
-                    logger.info("No more pages to fetch.")
-                    break
-        except Exception as e:
-            logger.exception(f"Failed to fetch non-breakfast restaurants: {str(e)}")
-            raise
+            if places:
+                first_restaurant = places[0]
+            
+            for place in places:
+                if (
+                    place.get("priceLevel") == budget and
+                    all(pref in place and place.get(pref) == val for pref, val in preferences.items())
+                ):
+                    return place
 
-    logger.warning("No matching restaurant found. Returning the first fetched restaurant.")
+            if not next_page_token:
+                break
+
     return first_restaurant
 
 async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
-    logger.info(f"Fetching top attractions in {destination} for duration: {duration} days")
-    
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
         'X-Goog-FieldMask': (
-            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,' 
-            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,places.nationalPhoneNumber,' 
-            'places.rating,places.userRatingCount,places.websiteUri,places.editorialSummary,places.goodForGroups,nextPageToken'
+            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,'
+            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,'
+            'places.nationalPhoneNumber,places.rating,places.userRatingCount,places.websiteUri,'
+            'places.editorialSummary,places.goodForGroups,nextPageToken'
         )
     }
 
@@ -109,48 +103,39 @@ async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
             'pageToken': next_page_token if next_page_token else None
         }
 
-        try:
-            async with httpx.AsyncClient() as client:
-                logger.info("Sending request to Google Places API for attractions...")
-                response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
-                data = response.json()
-                logger.info("Received response from Google Places API for attractions.")
-                logger.info(data)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
+            data = response.json()
+            print(data)
+            
+            if 'error_message' in data:
+                raise ValueError(f"Error from Google Places API: {data['error_message']}")
+            
+            places = data.get('places', [])
+            next_page_token = data.get('nextPageToken', None)
+            
+            for place in places:
+                results.append(place)
                 
-                if 'error_message' in data:
-                    logger.error(f"Error from Google Places API: {data['error_message']}")
-                    raise ValueError(f"Error from Google Places API: {data['error_message']}")
-                
-                places = data.get('places', [])
-                next_page_token = data.get('nextPageToken', None)
-
-                for place in places:
-                    results.append(place)
-                    if len(results) >= (duration * 3):
-                        break
-                
-                if not next_page_token:
-                    logger.info("No more pages to fetch for attractions.")
+                if len(results) >= (duration * 3):
                     break
-        except Exception as e:
-            logger.exception(f"Failed to fetch attractions: {str(e)}")
-            raise
+            
+            if not next_page_token:
+                break
 
-    logger.info(f"Returning {len(results)} attractions.")
     return results[:(duration * 3)]
 
 async def fetch_breakfast_restaurants(attraction: str, budget: str, destination: str) -> Dict:
-    logger.info(f"Fetching breakfast restaurants near {attraction}, {destination} with budget: {budget}")
-    
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
         'X-Goog-FieldMask': (
-            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,' 
-            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,places.nationalPhoneNumber,' 
-            'places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.editorialSummary,places.dineIn,' 
-            'places.goodForGroups,places.liveMusic,places.reservable,places.servesBreakfast,places.servesCocktails,' 
-            'places.servesDessert,places.servesDinner,places.servesLunch,places.servesWine,nextPageToken'
+            'places.displayName,places.formattedAddress,places.googleMapsUri,places.location,places.primaryType,'
+            'places.primaryTypeDisplayName,places.currentOpeningHours,places.internationalPhoneNumber,'
+            'places.nationalPhoneNumber,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,'
+            'places.editorialSummary,places.dineIn,places.goodForGroups,places.liveMusic,places.reservable,'
+            'places.servesBreakfast,places.servesCocktails,places.servesDessert,places.servesDinner,'
+            'places.servesLunch,places.servesWine,nextPageToken'
         )
     }
 
@@ -174,98 +159,123 @@ async def fetch_breakfast_restaurants(attraction: str, budget: str, destination:
             'pageToken': next_page_token if next_page_token else None
         }
 
-        try:
-            async with httpx.AsyncClient() as client:
-                logger.info("Sending request to Google Places API for breakfast spots...")
-                response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
-                data = response.json()
-                logger.info("Received response from Google Places API for breakfast spots.")
-                logger.info(data)
-                
-                if 'error_message' in data:
-                    logger.error(f"Error from Google Places API: {data['error_message']}")
-                    raise ValueError(f"Error from Google Places API: {data['error_message']}")
-                
-                places = data.get('places', [])
-                next_page_token = data.get('nextPageToken', None)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
+            data = response.json()
+            print(data)
 
-                if places:
-                    first_restaurant = places[0]
-                
-                for place in places:
-                    if (
-                        place.get("priceLevel") == budget and
-                        all(pref in place and place.get(pref) == val for pref, val in preferences.items())
-                    ):
-                        logger.info(f"Found matching breakfast restaurant: {place['displayName']}")
-                        return place
+            if 'error_message' in data:
+                raise ValueError(f"Error from Google Places API: {data['error_message']}")
+            
+            places = data.get('places', [])
+            next_page_token = data.get('nextPageToken', None)
 
-                if not next_page_token:
-                    logger.info("No more pages to fetch for breakfast spots.")
-                    break
-        except Exception as e:
-            logger.exception(f"Failed to fetch breakfast restaurants: {str(e)}")
-            raise
+            if places:
+                first_restaurant = places[0]
+            
+            for place in places:
+                if (
+                    place.get("priceLevel") == budget and
+                    all(pref in place and place.get(pref) == val for pref, val in preferences.items())
+                ):
+                    return place
 
-    logger.warning("No matching breakfast restaurant found. Returning the first fetched restaurant.")
+            if not next_page_token:
+                break
+
     return first_restaurant
 
 async def cluster_attractions(attractions_list: List[Dict], breakfast: str, budget: str, preferences: Dict, destination: str) -> List[Dict]:
-    logger.info("Clustering attractions for the itinerary.")
+    """
+    Cluster attractions based on proximity and apply breakfast conditions.
+
+    Args:
+        attractions_list: List of places with latitude, longitude, and other details.
+        breakfast: Whether breakfast is provided ('yes' or 'no').
+
+    Returns:
+        A list of processed restaurants based on the clustering.
+    """
     
     def distance(p1, p2):
         return geodesic((p1['location']['latitude'], p1['location']['longitude']),
-                        (p2['location']['latitude'], p2['location']['longitude'])).km
+                        (p2['location']['latitude'], p2['location']['longitude'])).kilometers
 
-    itineraries = []
+    clusters = []
+    itinerary = []
+    visited = set()
+    
+    for i in range(len(attractions_list)):
+        if i in visited:
+            continue
+        cluster = [attractions_list[i]]
+        visited.add(i)
+        
+        distances = sorted([(distance(attractions_list[i], attractions_list[j]), j) 
+                            for j in range(len(attractions_list)) if j not in visited])
+        for dist, j in distances[:2]:
+            cluster.append(attractions_list[j])
+            visited.add(j)
+        
+        if len(cluster) == 3:
+            clusters.append(cluster)
 
-    while len(attractions_list) >= 2:
-        attraction1 = attractions_list.pop(0)
-        distances = [(distance(attraction1, attraction2), attraction2) for attraction2 in attractions_list]
-        closest_attraction = min(distances, key=lambda x: x[0])[1]
-        attractions_list.remove(closest_attraction)
-
-        logger.info(f"Selected attractions: {attraction1['displayName']} and {closest_attraction['displayName']}")
-
-        if breakfast == "yes":
-            breakfast_restaurant = await fetch_breakfast_restaurants(attraction1['displayName'], budget, destination)
-            non_breakfast_restaurant = await fetch_non_breakfast_restaurants(preferences, attraction1['displayName'], budget, destination)
-            logger.info(f"Found breakfast restaurant: {breakfast_restaurant['displayName']} and non-breakfast restaurant: {non_breakfast_restaurant['displayName']}")
-            
-            itineraries.append({
-                "attraction1": attraction1,
-                "attraction2": closest_attraction,
-                "breakfast_restaurant": breakfast_restaurant,
-                "non_breakfast_restaurant": non_breakfast_restaurant
-            })
+    for cluster in clusters:
+        restaurants = []
+        if breakfast == 'yes':
+            for attraction in cluster[1:]:
+                result_B = await fetch_non_breakfast_restaurants(preferences, attraction["displayName"]["text"], budget, destination)
+                restaurants.append(result_B if result_B else None)
         else:
-            non_breakfast_restaurant1 = await fetch_non_breakfast_restaurants(preferences, attraction1['displayName'], budget, destination)
-            non_breakfast_restaurant2 = await fetch_non_breakfast_restaurants(preferences, closest_attraction['displayName'], budget, destination)
-            logger.info(f"Found non-breakfast restaurants: {non_breakfast_restaurant1['displayName']} and {non_breakfast_restaurant2['displayName']}")
+            result_A = await fetch_breakfast_restaurants(cluster[0]["displayName"]["text"], budget, destination)
+            restaurants.append(result_A if result_A else None)
             
-            itineraries.append({
-                "attraction1": attraction1,
-                "attraction2": closest_attraction,
-                "non_breakfast_restaurant1": non_breakfast_restaurant1,
-                "non_breakfast_restaurant2": non_breakfast_restaurant2
-            })
+            for attraction in cluster[1:]:
+                result_B = await fetch_non_breakfast_restaurants(preferences, attraction["displayName"]["text"], budget, destination)
+                restaurants.append(result_B if result_B else None)
 
-    logger.info("Finished clustering attractions.")
-    return itineraries
+        itinerary_item = {'attractions': cluster, "restaurants": restaurants}
+        itinerary.append(itinerary_item)
+    
+    return itinerary
 
 @router.post("/submit")
-async def submit(form_data: FormData):
-    logger.info(f"Received form data for generating itinerary: {form_data}")
-    destination = form_data.destination
-    duration = int(form_data.duration)
-    breakfast = form_data.breakfast
-    budget = form_data.budget
-    preferences = form_data.preferences
+async def submit_form(data: FormData):
+    """
+    Endpoint to handle form submission.
 
+    Args:
+        data: The validated form data.
+        db: The database session.
+
+    Returns:
+        A success message upon successful form submission.
+    """
+
+    budget = data.budget
+    destination = data.destination
+    duration = data.duration
+
+    preferences = data.preferences
+    preferences["dineIn"] = True
+    breakfast = data.breakfast
+
+    # non_breakfast_restaurants_list = await fetch_non_breakfast_restaurants(preferences, destination, budget, duration)
     attractions_list = await fetch_attractions(destination, duration)
-    logger.info(f"Fetched {len(attractions_list)} attractions.")
+    # breakfast_restaurants_list = []
 
-    itinerary = await cluster_attractions(attractions_list, breakfast, budget, preferences, destination)
-    logger.info(f"Generated itinerary: {itinerary}")
+    # if (data.breakfast == 'no'):
+    #     breakfast_restaurants_list = await fetch_breakfast_restaurants(non_breakfast_restaurants_list, destination, budget, duration)
 
-    return itinerary
+    # restaurants_list = breakfast_restaurants_list + non_breakfast_restaurants_list
+    # print('breakfast_restaurants_list', len(breakfast_restaurants_list))
+    # print('non_breakfast_restaurants_list', len(non_breakfast_restaurants_list))
+    # print('attractions_list', len(attractions_list))
+
+    # daily_itineraries = cluster_places(restaurants_list, attractions_list, duration)
+
+    daily_itineraries = await cluster_attractions(attractions_list, breakfast, budget, preferences, destination)
+
+    return {
+        "daily_itineraries": daily_itineraries
+    }
