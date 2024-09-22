@@ -1,4 +1,5 @@
 import httpx
+import logging
 
 from fastapi import APIRouter
 from typing import Dict, List
@@ -6,6 +7,9 @@ from geopy.distance import geodesic
 
 from schemas import FormData
 from core.config import settings
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,6 +27,7 @@ async def fetch_non_breakfast_restaurants(preferences: Dict, attraction: str, bu
     Returns:
         Dict: The first restaurant details that match the preferences and budget, or the first fetched restaurant if none qualify.
     """
+    logger.info("Fetching non-breakfast restaurants for attraction: %s, destination: %s, budget: %s", attraction, destination, budget)
 
     headers = {
         'Content-Type': 'application/json',
@@ -56,12 +61,14 @@ async def fetch_non_breakfast_restaurants(preferences: Dict, attraction: str, bu
             'pageToken': next_page_token if next_page_token else None
         }
 
+        logger.info("Sending request to Google Places API with payload: %s", payload)
+
         async with httpx.AsyncClient() as client:
             response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
             data = response.json()
-            print(data)
 
             if 'error_message' in data:
+                logger.error("Error from Google Places API: %s", data['error_message'])
                 raise ValueError(f"Error from Google Places API: {data['error_message']}")
             
             places = data.get('places', [])
@@ -69,20 +76,24 @@ async def fetch_non_breakfast_restaurants(preferences: Dict, attraction: str, bu
 
             if places:
                 first_restaurant = places[0]
+                logger.info("Found restaurant: %s", first_restaurant)
             
             for place in places:
                 if (
                     place.get("priceLevel") == budget and
                     all(pref in place and place.get(pref) == val for pref, val in preferences.items())
                 ):
+                    logger.info("Found matching restaurant: %s", place)
                     return place
 
             if not next_page_token:
                 break
-
+    
+    logger.info("Returning first restaurant: %s", first_restaurant)
     return first_restaurant
 
 async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
+    logger.info("Fetching attractions for destination: %s with duration: %d", destination, duration)
     headers = {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': settings.GOOGLE_PLACES_API_KEY,
@@ -103,12 +114,14 @@ async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
             'pageToken': next_page_token if next_page_token else None
         }
 
+        logger.info("Sending request to Google Places API with payload: %s", payload)
+
         async with httpx.AsyncClient() as client:
             response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
             data = response.json()
-            print(data)
             
             if 'error_message' in data:
+                logger.error("Error from Google Places API: %s", data['error_message'])
                 raise ValueError(f"Error from Google Places API: {data['error_message']}")
             
             places = data.get('places', [])
@@ -116,13 +129,15 @@ async def fetch_attractions(destination: str, duration: int) -> List[Dict]:
             
             for place in places:
                 results.append(place)
+                logger.info("Added place to results: %s", place)
                 
                 if len(results) >= (duration * 3):
                     break
             
             if not next_page_token:
                 break
-
+    
+    logger.info("Returning attractions list with count: %d", len(results))
     return results[:(duration * 3)]
 
 async def fetch_breakfast_restaurants(attraction: str, budget: str, destination: str) -> Dict:
@@ -138,6 +153,8 @@ async def fetch_breakfast_restaurants(attraction: str, budget: str, destination:
             'places.servesLunch,places.servesWine,nextPageToken'
         )
     }
+
+    logger.info("Fetching breakfast restaurants for attraction: %s, destination: %s, budget: %s", attraction, destination, budget)
 
     next_page_token = None
     preferences = {"servesBreakfast": True}
@@ -162,7 +179,6 @@ async def fetch_breakfast_restaurants(attraction: str, budget: str, destination:
         async with httpx.AsyncClient() as client:
             response = await client.post(GOOGLE_PLACES_API_URL, headers=headers, json=payload)
             data = response.json()
-            print(data)
 
             if 'error_message' in data:
                 raise ValueError(f"Error from Google Places API: {data['error_message']}")
@@ -260,20 +276,7 @@ async def submit_form(data: FormData):
     preferences["dineIn"] = True
     breakfast = data.breakfast
 
-    # non_breakfast_restaurants_list = await fetch_non_breakfast_restaurants(preferences, destination, budget, duration)
     attractions_list = await fetch_attractions(destination, duration)
-    # breakfast_restaurants_list = []
-
-    # if (data.breakfast == 'no'):
-    #     breakfast_restaurants_list = await fetch_breakfast_restaurants(non_breakfast_restaurants_list, destination, budget, duration)
-
-    # restaurants_list = breakfast_restaurants_list + non_breakfast_restaurants_list
-    # print('breakfast_restaurants_list', len(breakfast_restaurants_list))
-    # print('non_breakfast_restaurants_list', len(non_breakfast_restaurants_list))
-    # print('attractions_list', len(attractions_list))
-
-    # daily_itineraries = cluster_places(restaurants_list, attractions_list, duration)
-
     daily_itineraries = await cluster_attractions(attractions_list, breakfast, budget, preferences, destination)
 
     return {
