@@ -127,22 +127,19 @@ if (storedData) {
                         if(!attraction.googleMapsUri){
                            var mapLinks= document.getElementById(`${attraction.displayName.text}`).getElementsByClassName("map-link")
                            if (mapLinks.length > 0) {
-                            // Access the first element in the collection
-                            mapLinks[0].style.display = "none"; // Set the display property
+                            mapLinks[0].style.display = "none";
                             } 
                         }
                         if(!attraction.websiteUri){
                            var Website= document.getElementById(`${attraction.displayName.text}`).getElementsByClassName("web-site")
                            if (Website.length > 0) {
-                            // Access the first element in the collection
-                                Website[0].style.display = "none"; // Set the display property
+                                Website[0].style.display = "none";
                             } 
                         }
                         if(!attraction.internationalPhoneNumber){
                             var phoneNumber = document.getElementById(`${attraction.displayName.text}`).getElementsByClassName("phone-number")
                             if (phoneNumber.length > 0) {
-                                // Access the first element in the collection
-                                phoneNumber[0].style.display = "none"; // Set the display property
+                                phoneNumber[0].style.display = "none";
                                 } 
                         }
                     });
@@ -152,22 +149,19 @@ if (storedData) {
                         if(!restaurant.googleMapsUri){
                            var mapLinks= document.getElementById(`${restaurant.displayName.text}`).getElementsByClassName("map-link")
                            if (mapLinks.length > 0) {
-                            // Access the first element in the collection
-                            mapLinks[0].style.display = "none"; // Set the display property
+                            mapLinks[0].style.display = "none";
                             } 
                         }
                         if(!restaurant.websiteUri){
                            var Website= document.getElementById(`${restaurant.displayName.text}`).getElementsByClassName("web-site")
                            if (Website.length > 0) {
-                            // Access the first element in the collection
-                                Website[0].style.display = "none"; // Set the display property
+                                Website[0].style.display = "none";
                             } 
                         }
                         if(!restaurant.internationalPhoneNumber){
                             var phoneNumber = document.getElementById(`${restaurant.displayName.text}`).getElementsByClassName("phone-number")
                             if (phoneNumber.length > 0) {
-                                // Access the first element in the collection
-                                phoneNumber[0].style.display = "none"; // Set the display property
+                                phoneNumber[0].style.display = "none";
                                 } 
                         }
                     });
@@ -337,22 +331,19 @@ if (storedData) {
                         if(!attraction.googleMapsUri){
                            var mapLinks= document.getElementById(`${attraction.displayName.text}`).getElementsByClassName("map-link")
                            if (mapLinks.length > 0) {
-                            // Access the first element in the collection
-                            mapLinks[0].style.display = "none"; // Set the display property
+                            mapLinks[0].style.display = "none";
                             } 
                         }
                         if(!attraction.websiteUri){
                            var Website= document.getElementById(`${attraction.displayName.text}`).getElementsByClassName("web-site")
                            if (Website.length > 0) {
-                            // Access the first element in the collection
-                                Website[0].style.display = "none"; // Set the display property
+                                Website[0].style.display = "none";
                             } 
                         }
                         if(!attraction.internationalPhoneNumber){
                             var phoneNumber = document.getElementById(`${attraction.displayName.text}`).getElementsByClassName("phone-number")
                             if (phoneNumber.length > 0) {
-                                // Access the first element in the collection
-                                phoneNumber[0].style.display = "none"; // Set the display property
+                                phoneNumber[0].style.display = "none";
                                 } 
                         }
                     });
@@ -362,22 +353,19 @@ if (storedData) {
                         if(!restaurant.googleMapsUri){
                            var mapLinks= document.getElementById(`${restaurant.displayName.text}`).getElementsByClassName("map-link")
                            if (mapLinks.length > 0) {
-                            // Access the first element in the collection
-                                mapLinks[0].style.display = "none"; // Set the display property
+                                mapLinks[0].style.display = "none";
                             } 
                         }
                         if(!restaurant.websiteUri){
                            var Website= document.getElementById(`${restaurant.displayName.text}`).getElementsByClassName("web-site")
                            if (Website.length > 0) {
-                            // Access the first element in the collection
-                                Website[0].style.display = "none"; // Set the display property
+                                Website[0].style.display = "none";
                             } 
                         }
                         if(!restaurant.internationalPhoneNumber){
                             var phoneNumber = document.getElementById(`${restaurant.displayName.text}`).getElementsByClassName("phone-number")
                             if (phoneNumber.length > 0) {
-                                // Access the first element in the collection
-                                    phoneNumber[0].style.display = "none"; // Set the display property
+                                    phoneNumber[0].style.display = "none";
                                 } 
                         }
                     });

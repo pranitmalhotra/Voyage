@@ -90,7 +90,7 @@ function submitForm() {
         }
     };
 
-    fetch('https://voyage-532295559263.asia-south1.run.app/submit', {
+    fetch('https://voyage.up.railway.app/submit', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
