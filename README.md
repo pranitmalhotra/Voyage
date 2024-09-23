@@ -1,7 +1,7 @@
 # Voyage
 
 ## Architecture
-![Architecture](https://github.com/pranitmalhotra/Voyage/blob/main/assets/arch.pngg)
+![Architecture](https://github.com/pranitmalhotra/Voyage/blob/main/assets/arch.png)
 
 ## Explanation
 
