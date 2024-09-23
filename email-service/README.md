@@ -1,1 +1,1 @@
-# email_service
+# email-service
