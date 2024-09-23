@@ -1,8 +1,5 @@
 # Voyage
 
-## Reasons for choosing Microservices Architecture
-- Copy from Google docs
-
 ## Architecture
 ![Architecture](https://github.com/pranitmalhotra/Voyage/blob/main/assets/arch.png)
 
