@@ -1,1 +1,1 @@
-# email-cron-job
+# email-send-worker
