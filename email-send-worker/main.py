@@ -1,71 +1,62 @@
 import os
-import smtplib
 import json
 import logging
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from google.cloud import pubsub_v1
+from pymongo import MongoClient
 from datetime import datetime
 import pytz
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-SMTP_SERVER = os.getenv('SMTP_SERVER')
-SMTP_PORT = int(os.getenv('SMTP_PORT'))
-SMTP_USER = os.getenv('SMTP_USER')
-SMTP_PASSWORD = os.getenv('SMTP_PASSWORD')
-EMAILS_FROM_EMAIL = os.getenv('EMAILS_FROM_EMAIL')
+MONGO_URI = os.getenv('MONGO_URI')
+MONGO_DB = os.getenv('MONGO_DB')
+MONGO_COLLECTION = os.getenv('MONGO_COLLECTION')
 
-def send_email(to_email: str, subject: str, body: str, timezone: str) -> None:
+mongo_client = MongoClient(MONGO_URI)
+db = mongo_client[MONGO_DB]
+collection = db[MONGO_COLLECTION]
+
+def process_event(message: pubsub_v1.subscriber.message.Message) -> None:
     """
-    Sends an email to the specified recipient.
+    Processes a message received from Google Pub/Sub.
 
     Parameters:
-    - to_email (str): The recipient's email address.
-    - subject (str): The subject of the email.
-    - body (str): The body content of the email.
-    - timezone (str): The timezone to use for the timestamp.
-
-    Returns:
-    None
-    """
-    msg = MIMEMultipart()
-    msg['From'] = EMAILS_FROM_EMAIL
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(EMAILS_FROM_EMAIL, to_email, msg.as_string())
-        logging.info(f"Email sent successfully to {to_email} at {datetime.now(pytz.timezone(timezone))}")
-    except Exception as e:
-        logging.error(f"Failed to send email to {to_email}: {e}")
-
-def callback(message: pubsub_v1.subscriber.message.Message) -> None:
-    """
-    Callback function that is called when a message is received from Pub/Sub.
-
-    Parameters:
-    - message (pubsub_v1.subscriber.message.Message): The Pub/Sub message received.
+    - message: The Pub/Sub message received.
 
     Returns:
     None
     """
     event_data = json.loads(message.data.decode("utf-8"))
-    to_email = event_data.get('email')
-    subject = event_data.get('subject', "Default Subject")
-    body = event_data.get('body', "Default email body.")
-    timezone = event_data.get('timezone', 'UTC')
+    start_date = event_data.get('startDate')
+    itinerary = event_data.get('itinerary', {})
+    
+    formatted_date = datetime.strptime(start_date, '%Y-%m-%d').strftime('%d/%m/%y')
+    subject = f"Your Itinerary for {formatted_date}"
 
-    if to_email:
-        send_email(to_email, subject, body, timezone)
-        message.ack()
-        logging.info(f"Message acknowledged for email: {to_email}")
-    else:
-        logging.warning("No email found in the event data.")
+    body_parts = []
+    for meal, details in itinerary.items():
+        body_parts.append(f"{meal.capitalize()}: {details['name']}")
+        body_parts.append(f"- Address: {details['address']}")
+        body_parts.append(f"- Google Maps: {details['google_maps']}")
+        body_parts.append(f"- Phone: {details['phone']}")
+        body_parts.append(f"- Rating: {details['rating']} ({details['reviews']} reviews)")
+        if 'website' in details:
+            body_parts.append(f"- Website: {details['website']}")
+        body_parts.append("")
+
+    body = "\n".join(body_parts)
+
+    event_record = {
+        "itinerary": itinerary,
+        "start_date": start_date,
+        "created_at": datetime.now(pytz.utc)
+    }
+    
+    collection.insert_one(event_record)
+    logging.info(f"Inserted event into MongoDB: {event_record}")
+
+    message.ack()
+    logging.info(f"Message acknowledged for itinerary starting on: {start_date}")
 
 def main() -> None:
     """
@@ -82,7 +73,7 @@ def main() -> None:
 
     logging.info(f"Listening for messages on {subscription_path}...\n")
 
-    streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)
+    streaming_pull_future = subscriber.subscribe(subscription_path, callback=process_event)
 
     try:
         streaming_pull_future.result()
